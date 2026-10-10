@@ -54,7 +54,7 @@ button{font:inherit;color:inherit;border:1px solid var(--line);background:#202b4
  <div class="field"><label for="profileCity">Город для общего чата</label><input id="profileCity" maxlength="80" placeholder="Например, Астана"/></div>
  <div class="field"><label for="supabaseUrl">URL отдельного Supabase-проекта STR</label><input id="supabaseUrl" inputmode="url" placeholder="https://xxxx.supabase.co"/></div>
  <div class="field"><label for="supabaseKey">Publishable / anon key (не service_role)</label><input id="supabaseKey" autocomplete="off" placeholder="sb_publishable_… или legacy anon key"/></div>
- <div class="field"><label for="authEmail">Email для входа по ссылке</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com"/></div>
+ <div class="field"><label for="modelUrl">URL настоящей 3D-модели GLB/GLTF (необязательно)</label><input id="modelUrl" inputmode="url" placeholder="https://…/character.glb"/></div><div class="dialog-actions"><button id="loadModel">Загрузить 3D-модель</button></div><div class="field"><label for="authEmail">Email для входа по ссылке</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com"/></div>
  <div class="dialog-actions"><button id="saveProfile">Сохранить профиль</button><button id="connectCloud">Подключить облако / отправить ссылку</button></div>
  <div class="cloudstate" id="cloudState">Облако не подключено. Локальное сохранение работает на этом устройстве.</div>
  <div class="dialog-actions"><button id="closeSettings">Закрыть</button><button id="signOut" style="display:none">Выйти из аккаунта</button></div>
@@ -83,11 +83,12 @@ const mat=(color,roughness=.7,metalness=0)=>new THREE.MeshStandardMaterial({colo
 let outfitColor='#9d273b',gender='male',tab='clothes',rotation=0,dragging=false,lastX=0;
 const root=new THREE.Group();scene.add(root);
 const parts={};
+let externalModel=null,externalModelUrl=localStorage.getItem('str-model-url')||'';
 function mesh(name,geo,material,x,y,z,sx=1,sy=1,sz=1){const m=new THREE.Mesh(geo,material);m.name=name;m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=true;m.receiveShadow=true;root.add(m);parts[name]=m;return m}
 const skin=mat('#f4c7a5'),hair=mat('#20283c',.55),cloth=mat(outfitColor,.78),dark=mat('#292c3b'),gold=mat('#d8b06b',.32,.65),steel=mat('#b9c9d8',.25,.75),eye=mat('#4d91a5',.3);
 const sphere=new THREE.SphereGeometry(1,24,18),box=new THREE.BoxGeometry(1,1,1),cyl=new THREE.CylinderGeometry(.07,.09,.6,10);
 function buildCharacter(){
- while(root.children.length){const o=root.children.pop();o.geometry?.dispose?.()}
+ while(root.children.length){const o=root.children.pop();o.traverse?.(child=>child.geometry?.dispose?.());o.geometry?.dispose?.()}externalModel=null;
  Object.keys(parts).forEach(k=>delete parts[k]);
  const female=gender==='female';const bodyY=female?1.52:1.56;
  mesh('torso',new THREE.CylinderGeometry(female?.25:.29,female?.34:.32,.78,8),cloth,0,bodyY,0,1,1,.75);
@@ -139,6 +140,26 @@ function addGear(){
 }
 buildCharacter();
 addGear();
+
+async function loadExternalModel(url){
+ const target=(url||document.querySelector('#modelUrl').value).trim();
+ if(!target){document.querySelector('#notice').textContent='Вставь прямую ссылку на GLB/GLTF-модель.';return}
+ if(!/^(https?:\/\/|\/)/i.test(target)){document.querySelector('#notice').textContent='Ссылка на модель должна быть https:// или локальным путём от корня сайта.';return}
+ externalModelUrl=target;localStorage.setItem('str-model-url',target);document.querySelector('#modelUrl').value=target;document.querySelector('#notice').textContent='Загружаю 3D-модель…';
+ try{
+  const {GLTFLoader}=await import('https://unpkg.com/three@0.164.1/examples/jsm/loaders/GLTFLoader.js');
+  new GLTFLoader().load(target,gltf=>{
+   const model=gltf.scene;const bounds=new THREE.Box3().setFromObject(model);const size=bounds.getSize(new THREE.Vector3());const center=bounds.getCenter(new THREE.Vector3());
+   if(!size.y||!Number.isFinite(size.y)){document.querySelector('#notice').textContent='Не удалось определить размеры модели.';return}
+   const scale=2.4/size.y;model.scale.setScalar(scale);model.position.set(-center.x*scale,.35-bounds.min.y*scale,-center.z*scale);
+   model.traverse(node=>{if(node.isMesh){node.castShadow=true;node.receiveShadow=true}});
+   root.add(model);externalModel=model;
+   ['torso','belt','neck','head','haircap','bang','ponytail','hairtie','eyeL','eyeR','nose','armL','armR','handL','handR','legL','legR','bootL','bootR','shoulderL','shoulderR','sash'].forEach(name=>{if(parts[name])parts[name].visible=false});
+   applySelection();document.querySelector('#notice').textContent='Внешняя 3D-модель загружена. Совместимость одежды зависит от её пропорций и рига.';
+  },undefined,error=>{console.error(error);document.querySelector('#notice').textContent='Не удалось загрузить модель. Проверь ссылку, CORS и формат GLB/GLTF.'});
+ }catch(error){console.error(error);document.querySelector('#notice').textContent='Загрузчик 3D-моделей недоступен: '+error.message}
+}
+
 function renderItems(){const host=document.querySelector('#items');host.innerHTML='';const arr=catalog[tab];document.querySelector('#listTitle').textContent=({clothes:'Выбери одежду',armor:'Выбери защиту',weapon:'Выбери оружие'})[tab];document.querySelector('#count').textContent=arr.length+' предмета';
  arr.forEach(it=>{const owned=ownedItemIds.has(tab+':'+it.id);const b=document.createElement('button');b.disabled=!owned;b.className='item'+(state[tab]===it.id?' equipped':'')+(!owned?' locked':'');b.innerHTML='<span class="emoji">'+it.emoji+'</span><b>'+it.name+'</b><small>'+it.desc+'</small>'+(state[tab]===it.id?'<span class="check">✓ Надето</span>':(!owned?'<span class="check">🔒</span>':'<small>В инвентаре · Надеть</small>'));b.addEventListener('click',()=>{if(!owned)return;state[tab]=it.id;if(tab==='clothes'){outfitColor=it.id==='dark'?'#252833':it.id==='travel'?'#3c5949':it.id==='kimono'?'#253d68':outfitColor;document.querySelectorAll('.swatch').forEach(s=>s.classList.toggle('active',s.dataset.color===outfitColor))}applySelection();renderItems();});host.appendChild(b)});
 }
@@ -160,7 +181,7 @@ function applySelection(){
 function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.position.z=w<500?9.6:8.5;camera.lookAt(0,1.45,0);camera.updateProjectionMatrix()}
 const ro=new ResizeObserver(resize);ro.observe(canvas);resize();
 let downX=0;canvas.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;downX=e.clientX;canvas.setPointerCapture(e.pointerId)});canvas.addEventListener('pointermove',e=>{if(!dragging)return;rotation+=(e.clientX-lastX)*.012;lastX=e.clientX;root.rotation.y=rotation});canvas.addEventListener('pointerup',()=>dragging=false);canvas.addEventListener('pointercancel',()=>dragging=false);
-document.querySelectorAll('[data-gender]').forEach(b=>b.addEventListener('click',()=>{gender=b.dataset.gender;document.querySelectorAll('[data-gender]').forEach(x=>x.classList.toggle('active',x===b));buildCharacter();addGear();applySelection();document.querySelector('#characterName').textContent=gender==='male'?'Ронин · I':'Ая · I';document.querySelector('#characterSub').textContent=(gender==='male'?'Самурайский образ':'Исторический образ')+' · стартовый уровень'}));
+document.querySelectorAll('[data-gender]').forEach(b=>b.addEventListener('click',()=>{gender=b.dataset.gender;document.querySelectorAll('[data-gender]').forEach(x=>x.classList.toggle('active',x===b));buildCharacter();addGear();applySelection();if(externalModelUrl)loadExternalModel(externalModelUrl);document.querySelector('#characterName').textContent=gender==='male'?'Ронин · I':'Ая · I';document.querySelector('#characterSub').textContent=(gender==='male'?'Самурайский образ':'Исторический образ')+' · стартовый уровень'}));
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));renderItems()}));
 document.querySelectorAll('[data-color]').forEach(b=>b.addEventListener('click',()=>{outfitColor=b.dataset.color;document.querySelectorAll('[data-color]').forEach(x=>x.classList.toggle('active',x===b));applySelection()}));
 document.querySelector('#reset').addEventListener('click',()=>{state.clothes='haori';state.armor='none';state.weapon='katana';outfitColor='#9d273b';rotation=0;root.rotation.y=0;document.querySelectorAll('[data-color]').forEach(x=>x.classList.toggle('active',x.dataset.color===outfitColor));applySelection();renderItems();document.querySelector('#notice').textContent='Стартовый образ восстановлен.'});
@@ -180,7 +201,7 @@ function hideModal(id){document.querySelector('#'+id).classList.remove('open')}
 function updateProfileLabels(){document.querySelector('#profileName').value=currentDisplayName;document.querySelector('#profileCity').value=currentCity;document.querySelector('#characterSub').textContent=(gender==='male'?'Самурайский образ':'Исторический образ')+' · '+currentCity}
 function setCloudConnected(connected){document.querySelector('#appStatus').textContent=connected?'● STR · ОБЛАКО ПОДКЛЮЧЕНО':'● STR · ЛОКАЛЬНЫЙ РЕЖИМ';document.querySelector('#chatMessage').disabled=!connected;document.querySelector('#sendMessage').disabled=!connected;document.querySelector('#signOut').style.display=connected?'':'none';document.querySelector('#chatIntro').textContent=connected?'Город: '+currentCity+' · сообщения видят участники этого города.':'Для общего чата подключи отдельный Supabase STR и войди по email.'}
 function getLoadout(){return {clothes:state.clothes,armor:state.armor,weapon:state.weapon,outfitColor,rotation,gender}}
-function applyCloudLoadout(loadout){if(!loadout)return;state.clothes=loadout.clothes||state.clothes;state.armor=loadout.armor||state.armor;state.weapon=loadout.weapon||state.weapon;outfitColor=loadout.outfitColor||outfitColor;rotation=Number(loadout.rotation)||0;gender=loadout.gender||gender;root.rotation.y=rotation;document.querySelectorAll('[data-gender]').forEach(b=>b.classList.toggle('active',b.dataset.gender===gender));document.querySelectorAll('[data-color]').forEach(b=>b.classList.toggle('active',b.dataset.color===outfitColor));buildCharacter();addGear();renderItems();applySelection();document.querySelector('#characterName').textContent=gender==='male'?'Ронин · I':'Ая · I'}
+function applyCloudLoadout(loadout){if(!loadout)return;state.clothes=loadout.clothes||state.clothes;state.armor=loadout.armor||state.armor;state.weapon=loadout.weapon||state.weapon;outfitColor=loadout.outfitColor||outfitColor;rotation=Number(loadout.rotation)||0;gender=loadout.gender||gender;root.rotation.y=rotation;document.querySelectorAll('[data-gender]').forEach(b=>b.classList.toggle('active',b.dataset.gender===gender));document.querySelectorAll('[data-color]').forEach(b=>b.classList.toggle('active',b.dataset.color===outfitColor));buildCharacter();addGear();renderItems();applySelection();if(externalModelUrl)loadExternalModel(externalModelUrl);document.querySelector('#characterName').textContent=gender==='male'?'Ронин · I':'Ая · I'}
 async function ensureProfile(){if(!supabaseClient||!cloudUser)return;const payload={id:cloudUser.id,display_name:currentDisplayName,city:currentCity,gender,loadout:getLoadout()};const {error}=await supabaseClient.from('str_profiles').upsert(payload,{onConflict:'id'});if(error)throw error}
 async function syncInventory(){if(!supabaseClient||!cloudUser)return;const {data,error}=await supabaseClient.from('str_inventory').select('item_id').eq('user_id',cloudUser.id);if(error)throw error;if(data&&data.length){ownedItemIds.clear();data.forEach(row=>ownedItemIds.add(row.item_id))}else{const starters=Object.entries(catalog).flatMap(([slot,items])=>items.map(item=>({user_id:cloudUser.id,item_id:slot+':'+item.id,quantity:1})));const result=await supabaseClient.from('str_inventory').upsert(starters,{onConflict:'user_id,item_id'});if(result.error)throw result.error;starters.forEach(row=>ownedItemIds.add(row.item_id))}renderItems()}
 async function initializeCloudUser(user){cloudUser=user;if(!user){setCloudConnected(false);return}try{const {data,error}=await supabaseClient.from('str_profiles').select('*').eq('id',user.id).maybeSingle();if(error)throw error;if(data){currentDisplayName=data.display_name||currentDisplayName;currentCity=data.city||currentCity;if(data.loadout)applyCloudLoadout(data.loadout);if(data.gender)gender=data.gender}else{await ensureProfile()}localStorage.setItem('str-display-name',currentDisplayName);localStorage.setItem('str-city',currentCity);updateProfileLabels();await syncInventory();setCloudConnected(true);sayCloud('Вход выполнен: '+(user.email||'аккаунт')+'. Образ и инвентарь синхронизируются с STR.');await loadCityMessages();subscribeCityChat()}catch(e){console.error(e);sayCloud('Подключение есть, но профиль не загрузился. Проверь, что supabase/schema.sql применён в проекте STR. '+(e.message||''));setCloudConnected(false)}}
@@ -191,8 +212,9 @@ function formatTime(value){return new Date(value).toLocaleTimeString([], {hour:'
 async function renderCityMessages(rows){const log=document.querySelector('#chatLog');log.replaceChildren();if(!rows?.length){const empty=document.createElement('div');empty.className='cloudstate';empty.textContent='Пока нет сообщений. Напиши первым!';log.appendChild(empty);return}const ids=[...new Set(rows.map(x=>x.user_id))];const {data:profiles}=await supabaseClient.from('str_profiles').select('id,display_name,gender').in('id',ids);const map=new Map((profiles||[]).map(p=>[p.id,p]));rows.forEach(row=>{const profile=map.get(row.user_id)||{};const article=document.createElement('article');article.className='message'+(row.user_id===cloudUser?.id?' mine':'');const who=document.createElement('b');who.textContent=(profile.gender==='female'?'♀ ':'♂ ')+(profile.display_name||'Герой');const body=document.createElement('p');body.textContent=row.body;const time=document.createElement('time');time.textContent=formatTime(row.created_at);article.append(who,body,time);log.appendChild(article)});log.scrollTop=log.scrollHeight}
 async function loadCityMessages(){if(!supabaseClient||!cloudUser)return;const {data,error}=await supabaseClient.from('str_city_messages').select('id,city,user_id,body,created_at').eq('city',currentCity).order('created_at',{ascending:true}).limit(100);if(error)throw error;await renderCityMessages(data||[])}
 function subscribeCityChat(){if(!supabaseClient||!cloudUser)return;if(chatChannel)supabaseClient.removeChannel(chatChannel);chatChannel=supabaseClient.channel('str-city-'+currentCity.toLowerCase()).on('postgres_changes',{event:'INSERT',schema:'public',table:'str_city_messages'},async payload=>{if(String(payload.new.city).toLowerCase()===currentCity.toLowerCase())await loadCityMessages()}).subscribe()}
-document.querySelector('#openSettings').addEventListener('click',()=>{updateProfileLabels();try{const cfg=JSON.parse(localStorage.getItem(configKey)||'null');if(cfg){document.querySelector('#supabaseUrl').value=cfg.url||'';document.querySelector('#supabaseKey').value=cfg.key||''}}catch{}showModal('settingsModal')});
+document.querySelector('#openSettings').addEventListener('click',()=>{updateProfileLabels();document.querySelector('#modelUrl').value=externalModelUrl;try{const cfg=JSON.parse(localStorage.getItem(configKey)||'null');if(cfg){document.querySelector('#supabaseUrl').value=cfg.url||'';document.querySelector('#supabaseKey').value=cfg.key||''}}catch{}showModal('settingsModal')});
 document.querySelector('#closeSettings').addEventListener('click',()=>hideModal('settingsModal'));
+document.querySelector('#loadModel').addEventListener('click',()=>loadExternalModel());
 document.querySelector('#openChat').addEventListener('click',()=>{showModal('chatModal');if(cloudUser)loadCityMessages().catch(e=>{document.querySelector('#chatLog').textContent='Не удалось загрузить сообщения: '+e.message})});
 document.querySelector('#closeChat').addEventListener('click',()=>hideModal('chatModal'));
 document.querySelectorAll('.modal').forEach(modal=>modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('open')}));
@@ -203,6 +225,7 @@ document.querySelector('#chatForm').addEventListener('submit',async e=>{e.preven
 const cfgAtStart=(()=>{try{return JSON.parse(localStorage.getItem(configKey)||'null')}catch{return null}})();
 if(cfgAtStart){document.querySelector('#supabaseUrl').value=cfgAtStart.url||'';document.querySelector('#supabaseKey').value=cfgAtStart.key||'';createCloudClient().then(session=>{if(session?.user)return initializeCloudUser(session.user)}).catch(e=>{console.warn('STR cloud not ready',e);sayCloud('Облачный проект STR ещё не подключён или схема не настроена. Локальный режим доступен.')})}
 document.querySelector('#saveBtn').addEventListener('click',()=>saveCloudLoadout());
+if(externalModelUrl)loadExternalModel(externalModelUrl);
 
 function animate(){requestAnimationFrame(animate);ring.rotation.z+=.0015;renderer.render(scene,camera)}animate();
 </script>
