@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#10182b" />
+<title>STR — Character Forge</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1020;--panel:#151d32;--line:#2a3654;--text:#f4f6ff;--muted:#9aa8c7;--gold:#e7bd73;--blue:#82aaff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% 20%,#243657 0%,#10182b 48%,#090e1b 100%);color:var(--text);font:15px/1.4 Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;min-height:100dvh}
+button{font:inherit;color:inherit;border:1px solid var(--line);background:#202b45;border-radius:12px;padding:11px 13px;cursor:pointer;transition:.18s}button:hover{border-color:var(--gold);transform:translateY(-1px)}button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}.active{background:#5a452b;border-color:var(--gold)!important;color:#fff2d6}
+.app{max-width:1240px;margin:auto;padding:20px 20px 28px}.top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}.brand{display:flex;align-items:center;gap:12px}.mark{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:linear-gradient(145deg,#e9c47e,#8b6031);color:#171728;font-weight:950;letter-spacing:-2px;font-size:19px;box-shadow:0 8px 24px #0005}.brand h1{margin:0;font-size:19px;letter-spacing:.16em}.brand p{margin:2px 0 0;color:var(--muted);font-size:12px}.status{border:1px solid #35415c;background:#141d31;border-radius:999px;padding:8px 12px;color:#c8d4ec;font-size:12px;white-space:nowrap}
+.layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(310px,.8fr);gap:18px}.stage,.side{border:1px solid #2b3856;border-radius:22px;background:linear-gradient(155deg,#19243aee,#0f1728f2);box-shadow:0 22px 60px #0003;overflow:hidden}.stage{position:relative;min-height:650px;display:flex;flex-direction:column}.stagehead{display:flex;justify-content:space-between;align-items:center;padding:18px 20px 0;z-index:2}.eyebrow{font-size:10px;letter-spacing:.18em;color:var(--gold);font-weight:800}.stagehead h2{margin:4px 0 0;font-size:22px}.gender{display:flex;gap:6px;background:#0b1221;padding:4px;border:1px solid var(--line);border-radius:14px}.gender button{border:0;background:transparent;padding:8px 11px;font-size:12px}.gender button.active{background:#55442e}.scene{position:absolute;inset:95px 0 74px;overflow:hidden}.scene:before{content:"";position:absolute;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,#8aa5d52b,transparent 68%);left:50%;top:44%;transform:translate(-50%,-50%)}#world{position:absolute;inset:0;width:100%;height:100%;display:block}.hint{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);white-space:nowrap;color:#a9b7d3;background:#0b1221b8;border:1px solid #34415c;border-radius:999px;padding:8px 12px;font-size:11px;backdrop-filter:blur(8px)}.stagefoot{margin-top:auto;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;z-index:2;border-top:1px solid #ffffff0d}.charname{font-weight:750}.sub{font-size:12px;color:var(--muted);margin-top:3px}.side{padding:18px;display:flex;flex-direction:column;gap:18px}.sidehead{display:flex;align-items:start;justify-content:space-between}.side h3{margin:4px 0 0;font-size:21px}.tag{font-size:10px;color:var(--gold);border:1px solid #735c3c;padding:5px 8px;border-radius:999px;white-space:nowrap}.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.tabs button{padding:10px 5px;font-size:12px}.section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.section-title strong{font-size:13px}.section-title span{font-size:11px;color:var(--muted)}.items{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.item{position:relative;text-align:left;min-height:105px;padding:12px;display:flex;flex-direction:column;gap:9px;background:#111a2d}.item .emoji{font-size:25px}.item b{font-size:12px}.item small{font-size:10px;color:var(--muted)}.item.equipped{border-color:var(--gold);background:linear-gradient(145deg,#493b2a,#1c2434)}.check{position:absolute;right:9px;top:8px;color:var(--gold);font-size:12px}.colors{display:flex;gap:10px}.swatch{width:29px;height:29px;border-radius:50%;padding:0;border:2px solid #ffffff33}.swatch.active{outline:2px solid var(--gold);outline-offset:3px}.summary{background:#0d1526;border:1px solid #26334f;border-radius:15px;padding:13px}.summaryrow{display:flex;justify-content:space-between;gap:12px;font-size:12px;padding:5px 0}.summaryrow span{color:var(--muted)}.bottomnav{display:flex;gap:8px;flex-wrap:wrap}.bottomnav button{font-size:12px;flex:1}.notice{font-size:11px;color:#8e9bb7;text-align:center;margin:0}
+@media(max-width:800px){.app{padding:13px 12px 22px}.layout{grid-template-columns:1fr}.stage{min-height:560px}.scene{inset:92px 0 70px}.side{padding:16px}.top{margin-bottom:12px}.status{font-size:10px;padding:7px 9px}.brand h1{font-size:17px}.stagehead h2{font-size:20px}}
+@media(max-width:380px){.stage{min-height:510px}.stagehead{padding:14px 12px 0}.stagehead h2{font-size:18px}.gender button{padding:7px 8px}.item{min-height:98px}.brand p{font-size:11px}}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.164.1/build/three.module.js"}}
+</script>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand"><div class="mark">S</div><div><h1>STR <span style="color:var(--gold)">/ FORGE</span></h1><p>Собери своего героя</p></div></div>
+    <div class="status">● ПРОТОТИП · ЛОКАЛЬНОЕ СОХРАНЕНИЕ</div>
+  </header>
+  <main class="layout">
+    <section class="stage">
+      <div class="stagehead"><div><div class="eyebrow">CHARACTER STUDIO</div><h2>Твой персонаж</h2></div>
+        <div class="gender" role="group" aria-label="Выбор персонажа"><button class="active" data-gender="male">♂ Мужской</button><button data-gender="female">♀ Женский</button></div>
+      </div>
+      <div class="scene"><canvas id="world" aria-label="Трёхмерный аниме-персонаж"></canvas><div class="hint">↔ Перетаскивай, чтобы повернуть персонажа</div></div>
+      <div class="stagefoot"><div><div class="charname" id="characterName">Ронин · I</div><div class="sub" id="characterSub">Исторический комплект · стартовый уровень</div></div><button id="reset">↺ Сбросить образ</button></div>
+    </section>
+    <aside class="side">
+      <div class="sidehead"><div><div class="eyebrow">EQUIPMENT</div><h3>Гардероб</h3></div><span class="tag">ЭПОХА · САМУРАИ</span></div>
+      <nav class="tabs" aria-label="Разделы инвентаря"><button class="active" data-tab="clothes">Одежда</button><button data-tab="armor">Броня</button><button data-tab="weapon">Оружие</button></nav>
+      <section><div class="section-title"><strong id="listTitle">Выбери одежду</strong><span id="count">4 предмета</span></div><div class="items" id="items"></div></section>
+      <section><div class="section-title"><strong>Цвет экипировки</strong><span>Палитра</span></div><div class="colors" id="colors"><button class="swatch active" data-color="#9d273b" style="background:#9d273b" aria-label="Бордовый"></button><button class="swatch" data-color="#253d68" style="background:#253d68" aria-label="Синий"></button><button class="swatch" data-color="#3c5949" style="background:#3c5949" aria-label="Зелёный"></button><button class="swatch" data-color="#d1b47c" style="background:#d1b47c" aria-label="Песочный"></button><button class="swatch" data-color="#252833" style="background:#252833" aria-label="Чёрный"></button></div></section>
+      <section class="summary"><div class="section-title"><strong>На персонаже</strong><span>Снаряжение</span></div><div class="summaryrow"><span>Одежда</span><b id="sumClothes">Хаори</b></div><div class="summaryrow"><span>Броня</span><b id="sumArmor">Без брони</b></div><div class="summaryrow"><span>Оружие</span><b id="sumWeapon">Катана</b></div></section>
+      <div class="bottomnav"><button id="inventoryBtn">▦ Инвентарь</button><button id="saveBtn">✓ Сохранить образ</button></div>
+      <p class="notice" id="notice" aria-live="polite">Изменения применяются к модели сразу.</p>
+    </aside>
+  </main>
+</div>
+<script type="module">
+import * as THREE from 'three';
+const canvas=document.querySelector('#world');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(canvas.clientWidth,canvas.clientHeight,false);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+const scene=new THREE.Scene();scene.fog=new THREE.Fog(0x10182b,8,17);
+const camera=new THREE.PerspectiveCamera(34,1,.1,100);camera.position.set(0,2.4,8.5);
+scene.add(new THREE.HemisphereLight(0xc7ddff,0x45344b,2.0));
+const key=new THREE.DirectionalLight(0xffe4c1,3.1);key.position.set(4,7,5);key.castShadow=true;scene.add(key);
+const rim=new THREE.DirectionalLight(0x7aa9ff,2.3);rim.position.set(-4,3,-4);scene.add(rim);
+const floor=new THREE.Mesh(new THREE.CircleGeometry(2.5,64),new THREE.MeshStandardMaterial({color:0x26334b,roughness:.85,metalness:.1}));floor.rotation.x=-Math.PI/2;floor.position.y=-.04;floor.receiveShadow=true;scene.add(floor);
+const ring=new THREE.Mesh(new THREE.TorusGeometry(1.65,.012,8,100),new THREE.MeshBasicMaterial({color:0xb9955c,transparent:true,opacity:.65}));ring.rotation.x=Math.PI/2;ring.position.y=-.02;scene.add(ring);
+const mat=(color,roughness=.7,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
+let outfitColor='#9d273b',gender='male',tab='clothes',rotation=0,dragging=false,lastX=0;
+const root=new THREE.Group();scene.add(root);
+const parts={};
+function mesh(name,geo,material,x,y,z,sx=1,sy=1,sz=1){const m=new THREE.Mesh(geo,material);m.name=name;m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=true;m.receiveShadow=true;root.add(m);parts[name]=m;return m}
+const skin=mat('#f4c7a5'),hair=mat('#20283c',.55),cloth=mat(outfitColor,.78),dark=mat('#292c3b'),gold=mat('#d8b06b',.32,.65),steel=mat('#b9c9d8',.25,.75),eye=mat('#4d91a5',.3);
+const sphere=new THREE.SphereGeometry(1,24,18),box=new THREE.BoxGeometry(1,1,1),cyl=new THREE.CylinderGeometry(.07,.09,.6,10);
+function buildCharacter(){
+ while(root.children.length){const o=root.children.pop();o.geometry?.dispose?.()}
+ Object.keys(parts).forEach(k=>delete parts[k]);
+ const female=gender==='female';const bodyY=female?1.52:1.56;
+ mesh('torso',new THREE.CylinderGeometry(female?.25:.29,female?.34:.32,.78,8),cloth,0,bodyY,0,1,1,.75);
+ mesh('belt',new THREE.CylinderGeometry(.33,.32,.10,12),gold,0,1.28,0,1,1,.78);
+ mesh('neck',new THREE.CylinderGeometry(.09,.11,.15,10),skin,0,2.01,0);
+ mesh('head',sphere,skin,0,2.24,0,female?.29:.31,.37,.27);
+ mesh('haircap',sphere,hair,0,2.43,-.015, female?.305:.33,.25,.29);
+ mesh('bang',new THREE.BoxGeometry(.43,.12,.09),hair,0,2.39,.245,1,1,1);
+ if(female){mesh('ponytail',sphere,hair,0,2.36,-.28,.13,.32,.13);mesh('hairtie',sphere,gold,0,2.48,-.28,.07,.06,.07)}
+ mesh('eyeL',sphere,eye,-.12,2.25,.248,.045,.035,.018);mesh('eyeR',sphere,eye,.12,2.25,.248,.045,.035,.018);
+ mesh('nose',sphere,skin,0,2.18,.26,.025,.04,.025);
+ mesh('armL',new THREE.CylinderGeometry(.09,.075,.57,8),cloth,-.39,1.63,0,1,1,1);parts.armL.rotation.z=-.2;
+ mesh('armR',new THREE.CylinderGeometry(.09,.075,.57,8),cloth,.39,1.63,0,1,1,1);parts.armR.rotation.z=.2;
+ mesh('handL',sphere,skin,-.45,1.34,.02,.09,.10,.09);mesh('handR',sphere,skin,.45,1.34,.02,.09,.10,.09);
+ mesh('legL',new THREE.CylinderGeometry(.13,.11,.64,8),dark,-.17,.79,0);mesh('legR',new THREE.CylinderGeometry(.13,.11,.64,8),dark,.17,.79,0);
+ mesh('bootL',new THREE.BoxGeometry(.24,.12,.37),dark,-.17,.43,.07);mesh('bootR',new THREE.BoxGeometry(.24,.12,.37),dark,.17,.43,.07);
+ mesh('shoulderL',sphere,gold,-.35,1.88,0,.18,.15,.19);mesh('shoulderR',sphere,gold,.35,1.88,0,.18,.15,.19);
+ mesh('sash',new THREE.BoxGeometry(.5,.08,.08),gold,0,1.43,.26,1,1,1);
+ updateGear();
+}
+function updateGear(){
+ cloth.color.set(outfitColor);
+ if(parts.tunic){parts.tunic.visible=!!state.clothes;parts.tunic.material.color.set(outfitColor)}
+ if(parts.armor){parts.armor.visible=!!state.armor}
+ if(parts.helmet){parts.helmet.visible=state.armor==='helmet'}
+ if(parts.sword){parts.sword.visible=state.weapon==='katana'||state.weapon==='nodachi'}
+ if(parts.staff){parts.staff.visible=state.weapon==='yari'}
+ if(parts.shield){parts.shield.visible=state.armor==='shield'}
+}
+const catalog={
+ clothes:[{id:'haori',name:'Хаори',desc:'Традиционная куртка',emoji:'🥋'},{id:'kimono',name:'Кимоно',desc:'Классический силуэт',emoji:'👘'},{id:'travel',name:'Одежда странника',desc:'Лёгкий походный комплект',emoji:'🧥'},{id:'dark',name:'Тёмный синоби',desc:'Скрытный образ',emoji:'🥷'}],
+ armor:[{id:'none',name:'Без брони',desc:'Лёгкий стартовый вид',emoji:'◌'},{id:'samurai',name:'Доспех самурая',desc:'Ламеллярная броня',emoji:'🛡️'},{id:'helmet',name:'Кабуто',desc:'Шлем с золотым гребнем',emoji:'⛑️'},{id:'shield',name:'Боевой щит',desc:'Защита для ближнего боя',emoji:'🔰'}],
+ weapon:[{id:'katana',name:'Катана',desc:'Классический клинок',emoji:'⚔️'},{id:'nodachi',name:'Нодати',desc:'Длинный двуручный меч',emoji:'🗡️'},{id:'yari',name:'Яри',desc:'Историческое копьё',emoji:'🔱'},{id:'none',name:'Без оружия',desc:'Свободные руки',emoji:'✦'}]
+};
+const state={clothes:'haori',armor:'none',weapon:'katana'};
+function addGear(){
+ // Equipment meshes are real scene objects, so toggles visibly change the character.
+ mesh('tunic',new THREE.CylinderGeometry(.36,.40,.80,8),cloth,0,1.53,-.015,1,1,.78);
+ mesh('armor',new THREE.BoxGeometry(.58,.50,.13),mat('#596b78',.4,.45),0,1.61,.22);parts.armor.visible=false;
+ mesh('helmet',new THREE.SphereGeometry(.35,16,10,0,Math.PI*2,0,Math.PI*.56),steel,0,2.54,0);parts.helmet.visible=false;
+ mesh('helmetcrest',new THREE.BoxGeometry(.06,.25,.09),gold,0,2.78,0);parts.helmetcrest.visible=false;
+ const swordGroup=new THREE.Group();root.add(swordGroup);parts.sword=swordGroup;
+ const blade=new THREE.Mesh(new THREE.BoxGeometry(.055,.86,.045),steel);blade.position.set(.54,1.05,.12);blade.rotation.z=-.23;swordGroup.add(blade);
+ const guard=new THREE.Mesh(new THREE.BoxGeometry(.20,.045,.09),gold);guard.position.set(.54,.62,.12);guard.rotation.z=-.23;swordGroup.add(guard);
+ const grip=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.30,8),dark);grip.position.set(.54,.45,.12);grip.rotation.z=-.23;swordGroup.add(grip);
+ const spear=new THREE.Group();root.add(spear);parts.staff=spear;const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,1.55,8),dark);shaft.position.set(-.52,1.45,0);spear.add(shaft);const tip=new THREE.Mesh(new THREE.ConeGeometry(.09,.28,8),steel);tip.position.set(-.52,2.36,0);spear.add(tip);parts.staff.visible=false;
+ mesh('shield',new THREE.CylinderGeometry(.34,.34,.10,12),gold,-.52,1.42,.05,1,1,.35);parts.shield.visible=false;
+}
+addGear();
+function renderItems(){const host=document.querySelector('#items');host.innerHTML='';const arr=catalog[tab];document.querySelector('#listTitle').textContent=({clothes:'Выбери одежду',armor:'Выбери защиту',weapon:'Выбери оружие'})[tab];document.querySelector('#count').textContent=arr.length+' предмета';
+ arr.forEach(it=>{const b=document.createElement('button');b.className='item'+(state[tab]===it.id?' equipped':'');b.innerHTML='<span class="emoji">'+it.emoji+'</span><b>'+it.name+'</b><small>'+it.desc+'</small>'+(state[tab]===it.id?'<span class="check">✓</span>':'');b.addEventListener('click',()=>{state[tab]=it.id;if(tab==='clothes'){outfitColor=it.id==='dark'?'#252833':it.id==='travel'?'#3c5949':it.id==='kimono'?'#253d68':outfitColor;document.querySelectorAll('.swatch').forEach(s=>s.classList.toggle('active',s.dataset.color===outfitColor))}applySelection();renderItems();});host.appendChild(b)});
+}
+function applySelection(){
+ // Outfit variants change the model's material/shape details immediately.
+ cloth.color.set(outfitColor);
+ if(parts.tunic){parts.tunic.visible=state.clothes!=='dark';parts.tunic.material.color.set(state.clothes==='dark'?'#252833':outfitColor)}
+ if(parts.armor)parts.armor.visible=state.armor==='samurai';
+ if(parts.helmet){parts.helmet.visible=state.armor==='helmet';parts.helmetcrest.visible=state.armor==='helmet'}
+ if(parts.shield)parts.shield.visible=state.armor==='shield';
+ if(parts.sword)parts.sword.visible=state.weapon==='katana'||state.weapon==='nodachi';
+ if(parts.staff)parts.staff.visible=state.weapon==='yari';
+ if(parts.sword){parts.sword.scale.set(1,state.weapon==='nodachi'?1.25:1,1);parts.sword.position.x=state.weapon==='none'?5:0}
+ document.querySelector('#sumClothes').textContent=catalog.clothes.find(x=>x.id===state.clothes).name;
+ document.querySelector('#sumArmor').textContent=catalog.armor.find(x=>x.id===state.armor).name;
+ document.querySelector('#sumWeapon').textContent=catalog.weapon.find(x=>x.id===state.weapon).name;
+ document.querySelector('#notice').textContent='Образ обновлён — изменения видны на модели.';
+}
+function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.position.z=w<500?9.6:8.5;camera.updateProjectionMatrix()}
+const ro=new ResizeObserver(resize);ro.observe(canvas);resize();
+let downX=0;canvas.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;downX=e.clientX;canvas.setPointerCapture(e.pointerId)});canvas.addEventListener('pointermove',e=>{if(!dragging)return;rotation+=(e.clientX-lastX)*.012;lastX=e.clientX;root.rotation.y=rotation});canvas.addEventListener('pointerup',()=>dragging=false);canvas.addEventListener('pointercancel',()=>dragging=false);
+document.querySelectorAll('[data-gender]').forEach(b=>b.addEventListener('click',()=>{gender=b.dataset.gender;document.querySelectorAll('[data-gender]').forEach(x=>x.classList.toggle('active',x===b));buildCharacter();applySelection();document.querySelector('#characterName').textContent=gender==='male'?'Ронин · I':'Ая · I';document.querySelector('#characterSub').textContent=(gender==='male'?'Самурайский образ':'Исторический образ')+' · стартовый уровень'}));
+document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));renderItems()}));
+document.querySelectorAll('[data-color]').forEach(b=>b.addEventListener('click',()=>{outfitColor=b.dataset.color;document.querySelectorAll('[data-color]').forEach(x=>x.classList.toggle('active',x===b));applySelection()}));
+document.querySelector('#reset').addEventListener('click',()=>{state.clothes='haori';state.armor='none';state.weapon='katana';outfitColor='#9d273b';rotation=0;root.rotation.y=0;document.querySelectorAll('[data-color]').forEach(x=>x.classList.toggle('active',x.dataset.color===outfitColor));applySelection();renderItems();document.querySelector('#notice').textContent='Стартовый образ восстановлен.'});
+document.querySelector('#saveBtn').addEventListener('click',()=>{const saved={gender,state:{...state},outfitColor,rotation};localStorage.setItem('str-character-v1',JSON.stringify(saved));document.querySelector('#notice').textContent='Образ сохранён на этом устройстве.'});
+document.querySelector('#inventoryBtn').addEventListener('click',()=>{document.querySelector('#items').scrollIntoView({behavior:'smooth',block:'center'});document.querySelector('#notice').textContent='Инвентарь открыт — персонаж остаётся на экране.'});
+try{const saved=JSON.parse(localStorage.getItem('str-character-v1')||'null');if(saved){gender=saved.gender||'male';Object.assign(state,saved.state||{});outfitColor=saved.outfitColor||outfitColor;rotation=saved.rotation||0;root.rotation.y=rotation;document.querySelectorAll('[data-gender]').forEach(b=>b.classList.toggle('active',b.dataset.gender===gender));document.querySelectorAll('[data-color]').forEach(b=>b.classList.toggle('active',b.dataset.color===outfitColor));buildCharacter();document.querySelector('#characterName').textContent=gender==='male'?'Ронин · I':'Ая · I'}}catch(e){console.warn('STR save unavailable',e)}
+renderItems();applySelection();
+function animate(){requestAnimationFrame(animate);ring.rotation.z+=.0015;renderer.render(scene,camera)}animate();
+</script>
+</body>
+</html>
