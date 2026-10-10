@@ -120,9 +120,10 @@ const catalog={
  armor:[{id:'none',name:'Без брони',desc:'Лёгкий стартовый вид',emoji:'◌'},{id:'samurai',name:'Доспех самурая',desc:'Ламеллярная броня',emoji:'🛡️'},{id:'helmet',name:'Кабуто',desc:'Шлем с золотым гребнем',emoji:'⛑️'},{id:'shield',name:'Боевой щит',desc:'Защита для ближнего боя',emoji:'🔰'}],
  weapon:[{id:'katana',name:'Катана',desc:'Классический клинок',emoji:'⚔️'},{id:'nodachi',name:'Нодати',desc:'Длинный двуручный меч',emoji:'🗡️'},{id:'yari',name:'Яри',desc:'Историческое копьё',emoji:'🔱'},{id:'none',name:'Без оружия',desc:'Свободные руки',emoji:'✦'}]
 };
-Object.entries(catalog).forEach(([slot,items])=>items.forEach(item=>ownedItemIds.add(slot+':'+item.id)));
+
 const state={clothes:'haori',armor:'none',weapon:'katana'};
 const ownedItemIds=new Set();
+Object.entries(catalog).forEach(([slot,items])=>items.forEach(item=>ownedItemIds.add(slot+':'+item.id)));
 function addGear(){
  // Equipment meshes are real scene objects, so toggles visibly change the character.
  mesh('tunic',new THREE.CylinderGeometry(.36,.40,.80,8),cloth,0,1.53,-.015,1,1,.78);
