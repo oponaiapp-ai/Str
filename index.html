@@ -125,6 +125,7 @@ const catalog={
 };
 Object.entries(catalog).forEach(([slot,items])=>items.forEach(item=>ownedItemIds.add(slot+':'+item.id)));
 const state={clothes:'haori',armor:'none',weapon:'katana'};
+const ownedItemIds=new Set();
 function addGear(){
  // Equipment meshes are real scene objects, so toggles visibly change the character.
  mesh('tunic',new THREE.CylinderGeometry(.36,.40,.80,8),cloth,0,1.53,-.015,1,1,.78);
@@ -185,7 +186,7 @@ document.querySelectorAll('[data-gender]').forEach(b=>b.addEventListener('click'
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));renderItems()}));
 document.querySelectorAll('[data-color]').forEach(b=>b.addEventListener('click',()=>{outfitColor=b.dataset.color;document.querySelectorAll('[data-color]').forEach(x=>x.classList.toggle('active',x===b));applySelection()}));
 document.querySelector('#reset').addEventListener('click',()=>{state.clothes='haori';state.armor='none';state.weapon='katana';outfitColor='#9d273b';rotation=0;root.rotation.y=0;document.querySelectorAll('[data-color]').forEach(x=>x.classList.toggle('active',x.dataset.color===outfitColor));applySelection();renderItems();document.querySelector('#notice').textContent='Стартовый образ восстановлен.'});
-document.querySelector('#saveBtn').addEventListener('click',()=>{const saved={gender,state:{...state},outfitColor,rotation};localStorage.setItem('str-character-v1',JSON.stringify(saved));document.querySelector('#notice').textContent='Образ сохранён на этом устройстве.'});
+document.querySelector('#saveBtn').addEventListener('click',()=>{const saved={gender,state:{...state},outfitColor,rotation};localStorage.setItem('str-character-v1',JSON.stringify(saved));document.querySelector('#notice').textContent='Образ сохранён на этом устройстве.';saveCloudLoadout()});
 document.querySelector('#inventoryBtn').addEventListener('click',()=>{document.querySelector('#items').scrollIntoView({behavior:'smooth',block:'center'});document.querySelector('#notice').textContent='Инвентарь открыт — экипировка хранится отдельно от надетых предметов.'});
 try{const saved=JSON.parse(localStorage.getItem('str-character-v1')||'null');if(saved){gender=saved.gender||'male';Object.assign(state,saved.state||{});outfitColor=saved.outfitColor||outfitColor;rotation=saved.rotation||0;root.rotation.y=rotation;document.querySelectorAll('[data-gender]').forEach(b=>b.classList.toggle('active',b.dataset.gender===gender));document.querySelectorAll('[data-color]').forEach(b=>b.classList.toggle('active',b.dataset.color===outfitColor));buildCharacter();addGear();document.querySelector('#characterName').textContent=gender==='male'?'Ронин · I':'Ая · I'}}catch(e){console.warn('STR save unavailable',e)}
 renderItems();applySelection();
@@ -224,7 +225,6 @@ document.querySelector('#signOut').addEventListener('click',async()=>{if(supabas
 document.querySelector('#chatForm').addEventListener('submit',async e=>{e.preventDefault();const body=document.querySelector('#chatMessage').value.trim();if(!body||!supabaseClient||!cloudUser)return;const {error}=await supabaseClient.from('str_city_messages').insert({city:currentCity,user_id:cloudUser.id,body});if(error){document.querySelector('#chatLog').textContent='Не удалось отправить: '+error.message;return}document.querySelector('#chatMessage').value='';await loadCityMessages()});
 const cfgAtStart=(()=>{try{return JSON.parse(localStorage.getItem(configKey)||'null')}catch{return null}})();
 if(cfgAtStart){document.querySelector('#supabaseUrl').value=cfgAtStart.url||'';document.querySelector('#supabaseKey').value=cfgAtStart.key||'';createCloudClient().then(session=>{if(session?.user)return initializeCloudUser(session.user)}).catch(e=>{console.warn('STR cloud not ready',e);sayCloud('Облачный проект STR ещё не подключён или схема не настроена. Локальный режим доступен.')})}
-document.querySelector('#saveBtn').addEventListener('click',()=>saveCloudLoadout());
 if(externalModelUrl)loadExternalModel(externalModelUrl);
 
 function animate(){requestAnimationFrame(animate);ring.rotation.z+=.0015;renderer.render(scene,camera)}animate();
