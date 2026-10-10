@@ -15,7 +15,7 @@ The current character is a procedural 3D prototype assembled from basic geometry
 
 ## Run
 
-Open `index.html` through a static web server or deploy the repository to Vercel. Three.js is currently loaded as an ES module from unpkg, so the browser needs internet access.
+Install dependencies with `npm install`, run `npm run dev` for local development, and use `npm run build` to create the production bundle in `dist/`. Vercel is configured to build STR with Vite. Three.js and GLTFLoader are bundled by Vite.
 
 ## Planned architecture
 
