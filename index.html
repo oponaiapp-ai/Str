@@ -50,12 +50,12 @@ const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(canvas.clientWidth,canvas.clientHeight,false);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 const scene=new THREE.Scene();scene.fog=new THREE.Fog(0x10182b,8,17);
-const camera=new THREE.PerspectiveCamera(34,1,.1,100);camera.position.set(0,2.4,8.5);
+const camera=new THREE.PerspectiveCamera(34,1,.1,100);camera.position.set(0,2.4,8.5);camera.lookAt(0,1.45,0);
 scene.add(new THREE.HemisphereLight(0xc7ddff,0x45344b,2.0));
 const key=new THREE.DirectionalLight(0xffe4c1,3.1);key.position.set(4,7,5);key.castShadow=true;scene.add(key);
 const rim=new THREE.DirectionalLight(0x7aa9ff,2.3);rim.position.set(-4,3,-4);scene.add(rim);
-const floor=new THREE.Mesh(new THREE.CircleGeometry(2.5,64),new THREE.MeshStandardMaterial({color:0x26334b,roughness:.85,metalness:.1}));floor.rotation.x=-Math.PI/2;floor.position.y=-.04;floor.receiveShadow=true;scene.add(floor);
-const ring=new THREE.Mesh(new THREE.TorusGeometry(1.65,.012,8,100),new THREE.MeshBasicMaterial({color:0xb9955c,transparent:true,opacity:.65}));ring.rotation.x=Math.PI/2;ring.position.y=-.02;scene.add(ring);
+const floor=new THREE.Mesh(new THREE.CircleGeometry(2.5,64),new THREE.MeshStandardMaterial({color:0x26334b,roughness:.85,metalness:.1}));floor.rotation.x=-Math.PI/2;floor.position.y=.35;floor.receiveShadow=true;scene.add(floor);
+const ring=new THREE.Mesh(new THREE.TorusGeometry(1.65,.012,8,100),new THREE.MeshBasicMaterial({color:0xb9955c,transparent:true,opacity:.65}));ring.rotation.x=Math.PI/2;ring.position.y=.33;scene.add(ring);
 const mat=(color,roughness=.7,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
 let outfitColor='#9d273b',gender='male',tab='clothes',rotation=0,dragging=false,lastX=0;
 const root=new THREE.Group();scene.add(root);
@@ -133,7 +133,7 @@ function applySelection(){
  document.querySelector('#sumWeapon').textContent=catalog.weapon.find(x=>x.id===state.weapon).name;
  document.querySelector('#notice').textContent='Образ обновлён — изменения видны на модели.';
 }
-function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.position.z=w<500?9.6:8.5;camera.updateProjectionMatrix()}
+function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.position.z=w<500?9.6:8.5;camera.lookAt(0,1.45,0);camera.updateProjectionMatrix()}
 const ro=new ResizeObserver(resize);ro.observe(canvas);resize();
 let downX=0;canvas.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;downX=e.clientX;canvas.setPointerCapture(e.pointerId)});canvas.addEventListener('pointermove',e=>{if(!dragging)return;rotation+=(e.clientX-lastX)*.012;lastX=e.clientX;root.rotation.y=rotation});canvas.addEventListener('pointerup',()=>dragging=false);canvas.addEventListener('pointercancel',()=>dragging=false);
 document.querySelectorAll('[data-gender]').forEach(b=>b.addEventListener('click',()=>{gender=b.dataset.gender;document.querySelectorAll('[data-gender]').forEach(x=>x.classList.toggle('active',x===b));buildCharacter();addGear();applySelection();document.querySelector('#characterName').textContent=gender==='male'?'Ронин · I':'Ая · I';document.querySelector('#characterSub').textContent=(gender==='male'?'Самурайский образ':'Исторический образ')+' · стартовый уровень'}));
